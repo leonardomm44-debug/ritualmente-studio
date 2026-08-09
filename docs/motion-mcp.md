@@ -2,7 +2,7 @@
 
 Connects [Motion](https://www.usemotion.com) to Claude Code through the Model Context Protocol, so an agent working in this repo can read and act on the studio's tasks, projects, and calendar without leaving the editor.
 
-Motion sits alongside n8n in `/automation`: n8n runs unattended pipelines, Motion holds the scheduling layer a human still steers.
+Motion sits alongside n8n in the automation layer: n8n runs unattended pipelines, Motion holds the scheduling layer a human still steers.
 
 ## Configuration
 
