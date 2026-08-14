@@ -13,8 +13,17 @@ Core Web Vitals, report generation). Those need a one-time runtime setup per
 machine:
 
 ```bash
-.claude/skills/seo/bin/claude-seo setup    # builds an isolated venv under ~/.local/share
+.claude/skills/seo/bin/claude-seo setup    # builds an isolated venv
 .claude/skills/seo/bin/claude-seo doctor   # verify
+```
+
+In this "manual" install mode the runtime's data directory is the skill directory
+itself, so the venv and Playwright's Chromium land in
+`.claude/skills/seo/` — gitignored, never committed. To keep them out of the
+working tree entirely, point the runtime elsewhere:
+
+```bash
+export CLAUDE_SEO_DATA_DIR="$HOME/.local/share/claude-seo"
 ```
 
 Skills that are purely prompt-driven (briefs, clustering, schema authoring) work
