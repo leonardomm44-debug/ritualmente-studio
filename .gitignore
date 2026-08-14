@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+.DS_Store
+
+# claude-seo managed Python runtime (built locally by `bin/claude-seo setup`).
+# In "manual" install mode the runtime's data dir IS the skill dir, so the venv,
+# the Playwright browsers, and the setup state all land inside the repo.
+.claude/skills/seo/.venv
+.claude/skills/seo/.venv.*
+.claude/skills/seo/ms-playwright/
+.claude/skills/seo/runtime-state.json
+.claude/skills/seo/.runtime-state.*
+.claude/skills/seo/.setup.lock
