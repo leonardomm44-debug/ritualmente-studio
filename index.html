@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritual Mente - Lectura Interactiva Dinámica</title>
+    <style>
+        :root {
+            --dorado: #d4af37;
+            --fondo-oscuro: #03060a;
+            --panel-bg: rgba(20, 20, 30, 0.6);
+            --borde-transparente: rgba(212, 175, 55, 0.3);
+        }
+        * { box-sizing: border-box; }
+        html { background: var(--fondo-oscuro); color: #fff; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: 32px 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .contenedor-lectura {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            min-height: 80vh;
+            gap: 40px;
+        }
+        .panel-grafico {
+            flex: 1;
+            min-width: 0;
+            min-height: 460px;
+            background: var(--fondo-oscuro);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .contenedor-grafico-estatico {
+            position: relative;
+            isolation: isolate;
+            perspective: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .escena-grafica {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 420px;
+            aspect-ratio: 1;
+            transform: rotateX(var(--rotacion-x, 0deg)) rotateY(var(--rotacion-y, 0deg));
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .escena-grafica.en-interaccion {
+            transform: rotateX(var(--rotacion-x, 0deg)) rotateY(var(--rotacion-y, 0deg)) scale(1.05) translateY(-5px);
+        }
+        .carta-posicion {
+            position: absolute;
+            width: 17%;
+            max-width: 75px;
+            transform: translate(-50%, -50%);
+        }
+        .carta-posicion[data-id="1"] { top: 50%; left: 15%; --demora: 0s; }
+        .carta-posicion[data-id="2"] { top: 30%; left: 35%; --demora: 0.8s; }
+        .carta-posicion[data-id="3"] { top: 70%; left: 35%; --demora: 1.6s; }
+        .carta-posicion[data-id="4"] { top: 30%; left: 55%; --demora: 2.4s; }
+        .carta-posicion[data-id="5"] { top: 70%; left: 55%; --demora: 3.2s; }
+        .carta-posicion[data-id="6"] { top: 30%; left: 75%; --demora: 4s; }
+        .carta-posicion[data-id="7"] { top: 70%; left: 75%; --demora: 4.8s; }
+        .carta-flotante {
+            animation: flotarYBrillar 6s ease-in-out infinite;
+            animation-delay: var(--demora);
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.8)) brightness(0.95);
+        }
+        .carta {
+            width: 100%;
+            aspect-ratio: 15 / 23;
+            padding: 0;
+            background: #0a0a12;
+            border: 1px solid var(--borde-transparente);
+            color: inherit;
+            font: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .imagen-estatica-dinamica {
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        @keyframes flotarYBrillar {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+                filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.8)) brightness(0.95);
+            }
+            50% {
+                transform: translateY(-12px) rotate(0.5deg) scale(1.02);
+                filter: drop-shadow(0 30px 45px rgba(212, 175, 55, 0.25)) brightness(1.05);
+            }
+        }
+        .carta-posicion:has(.activa), .carta-posicion:focus-within { z-index: 10; }
+        .carta-flotante:has(.activa), .carta-flotante:focus-within { animation-play-state: paused; }
+        .imagen-estatica-dinamica.activa, .imagen-estatica-dinamica:focus-visible {
+            transform: scale(1.06) translateY(-5px);
+            filter: drop-shadow(0 35px 50px rgba(212, 175, 55, 0.4)) brightness(1.1);
+            border-color: var(--dorado);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+        }
+        .carta:focus-visible, .btn-opcion:focus-visible { outline: 2px solid var(--dorado); outline-offset: 5px; }
+        .numero-carta {
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--dorado);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--dorado);
+            pointer-events: none;
+        }
+        .halo-magico {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            max-width: 100%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            animation: pulsoHalo 4s ease-in-out infinite;
+        }
+        @keyframes pulsoHalo {
+            0%, 100% { transform: scale(0.9); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        .panel-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+        h2 { font-size: 1.8rem; color: var(--dorado); letter-spacing: 2px; text-transform: uppercase; font-weight: 400; margin-bottom: 15px; }
+        .descripcion { font-size: 1rem; color: rgba(255, 255, 255, 0.7); line-height: 1.6; margin-bottom: 20px; }
+        .precio { font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 30px; }
+        .grid-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-opcion[data-id="1"] { grid-column: 1 / -1; }
+        .btn-opcion { background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.1); color: #ccc; padding: 12px 15px; border-radius: 6px; text-align: left; font-size: 0.9rem; cursor: pointer; transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+        .btn-opcion.activa { background: rgba(212, 175, 55, 0.1); border-color: var(--dorado); color: var(--dorado); transform: translateX(4px); }
+        @media (hover: hover) and (pointer: fine) {
+            .carta-flotante:hover { animation-play-state: paused; }
+            .carta-posicion:hover { z-index: 10; }
+            .imagen-estatica-dinamica:hover { transform: scale(1.06) translateY(-5px); filter: drop-shadow(0 35px 50px rgba(212, 175, 55, 0.4)) brightness(1.1); border-color: var(--dorado); }
+            .btn-opcion:hover { background: rgba(212, 175, 55, 0.1); border-color: var(--dorado); color: var(--dorado); transform: translateX(4px); }
+        }
+        @media (max-width: 900px) {
+            body { padding: 20px 0; align-items: flex-start; }
+            .contenedor-lectura { flex-direction: column; min-height: 0; gap: 24px; }
+            .panel-grafico { flex: none; min-height: 400px; width: 100%; }
+            .grid-opciones { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .carta-flotante, .halo-magico { animation: none; }
+            .escena-grafica, .imagen-estatica-dinamica, .btn-opcion { transition: none; }
+            .escena-grafica, .escena-grafica.en-interaccion,
+            .imagen-estatica-dinamica.activa, .imagen-estatica-dinamica:hover,
+            .imagen-estatica-dinamica:focus-visible, .btn-opcion:hover, .btn-opcion.activa { transform: none; }
+            .halo-magico { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-lectura">
+
+        <!-- Panel Visual Interactivo con Movimiento -->
+        <div class="panel-grafico contenedor-grafico-estatico" id="panelGrafico" role="group" aria-label="Tirada de siete cartas">
+            <div class="halo-magico" aria-hidden="true"></div>
+            <div class="escena-grafica">
+            <div class="carta-posicion" data-id="1"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="1" aria-label="1. Presente" aria-pressed="false"><span class="numero-carta" aria-hidden="true">1</span></button></div></div>
+            <div class="carta-posicion" data-id="2"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="2" aria-label="2. Opción A - Sí" aria-pressed="false"><span class="numero-carta" aria-hidden="true">2</span></button></div></div>
+            <div class="carta-posicion" data-id="3"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="3" aria-label="3. Opción B - No" aria-pressed="false"><span class="numero-carta" aria-hidden="true">3</span></button></div></div>
+            <div class="carta-posicion" data-id="4"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="4" aria-label="4. Opción A - Desarrollo" aria-pressed="false"><span class="numero-carta" aria-hidden="true">4</span></button></div></div>
+            <div class="carta-posicion" data-id="5"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="5" aria-label="5. Opción B - Desarrollo" aria-pressed="false"><span class="numero-carta" aria-hidden="true">5</span></button></div></div>
+            <div class="carta-posicion" data-id="6"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="6" aria-label="6. Opción A - Síntesis" aria-pressed="false"><span class="numero-carta" aria-hidden="true">6</span></button></div></div>
+            <div class="carta-posicion" data-id="7"><div class="carta-flotante"><button type="button" class="carta imagen-estatica-dinamica" data-id="7" aria-label="7. Opción B - Síntesis" aria-pressed="false"><span class="numero-carta" aria-hidden="true">7</span></button></div></div>
+            </div>
+        </div>
+
+        <!-- Panel de Interfaz de Usuario -->
+        <div class="panel-texto">
+            <h2>Lectura de las decisiones</h2>
+            <p class="descripcion">Una tirada de siete cartas para explorar tu presente y comparar dos caminos: la opción A (sí) y la opción B (no). Observá cada recorrido antes de decidir.</p>
+            <div class="precio">ARS 14.999,00</div>
+
+            <div class="grid-opciones">
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="1">1. Presente</button>
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="2">2. Opción A - Sí</button>
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="3">3. Opción B - No</button>
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="4">4. Opción A - Desarrollo</button>
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="5">5. Opción B - Desarrollo</button>
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="6">6. Opción A - Síntesis</button>
+                <button type="button" aria-pressed="false" class="btn-opcion" data-id="7">7. Opción B - Síntesis</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cartas = document.querySelectorAll('.carta');
+            const botones = document.querySelectorAll('.btn-opcion');
+            const panel = document.getElementById('panelGrafico');
+            const escena = panel.querySelector('.escena-grafica');
+            const movimientoReducido = window.matchMedia('(prefers-reduced-motion: reduce)');
+            const cursorPreciso = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+            function activarElemento(id) {
+                [...cartas, ...botones].forEach(elemento => {
+                    const activa = elemento.dataset.id === id;
+                    elemento.classList.toggle('activa', activa);
+                    elemento.setAttribute('aria-pressed', String(activa));
+                });
+            }
+
+            [...cartas, ...botones].forEach(elemento => {
+                elemento.addEventListener('pointerenter', evento => {
+                    if (cursorPreciso.matches && evento.pointerType !== 'touch') activarElemento(elemento.dataset.id);
+                });
+                elemento.addEventListener('click', () => activarElemento(elemento.dataset.id));
+                elemento.addEventListener('focus', () => activarElemento(elemento.dataset.id));
+            });
+
+            const restablecer = () => {
+                escena.classList.remove('en-interaccion');
+                escena.style.removeProperty('--rotacion-x');
+                escena.style.removeProperty('--rotacion-y');
+            };
+            panel.addEventListener('pointermove', evento => {
+                if (movimientoReducido.matches || !cursorPreciso.matches || evento.pointerType === 'touch') return;
+                const rect = panel.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+                const x = Math.max(-0.5, Math.min(0.5, (evento.clientX - rect.left) / rect.width - 0.5));
+                const y = Math.max(-0.5, Math.min(0.5, (evento.clientY - rect.top) / rect.height - 0.5));
+                escena.style.setProperty('--rotacion-x', (-y * 15) + 'deg');
+                escena.style.setProperty('--rotacion-y', (x * 15) + 'deg');
+                escena.classList.add('en-interaccion');
+            });
+            panel.addEventListener('pointerleave', restablecer);
+            panel.addEventListener('pointercancel', restablecer);
+            window.addEventListener('blur', restablecer);
+            movimientoReducido.addEventListener('change', restablecer);
+            cursorPreciso.addEventListener('change', restablecer);
+        });
+    </script>
+</body>
+</html>
