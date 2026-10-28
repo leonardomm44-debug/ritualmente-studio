@@ -1,1 +1,0 @@
-git add . && git commit -m "feat: integracion del modulo Lectura Principio de Mes con arquetipos y calculo por fecha de nacimiento en pantalla principal" && git push origin main

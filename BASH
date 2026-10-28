@@ -1,1 +1,0 @@
-git add . && git commit -m "feat: integracion del modulo Calendario Lunar con ritmos emocionales y fases de manifestacion" && git push origin main

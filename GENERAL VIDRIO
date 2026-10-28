@@ -1,1 +1,0 @@
-git add . && git commit -m "style: aplicar efecto de vidrio esmerilado transparente a todas las secciones de Ritual Mente" && git push origin main
